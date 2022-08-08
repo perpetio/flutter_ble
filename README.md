@@ -26,5 +26,8 @@ https://user-images.githubusercontent.com/88086968/183375113-5ab6bcef-4ec8-4a1a-
 ## Getting started
 
 1. Clone the repo
-2. Open project in VSCode or Android studio.
-3. Run on simulator or real device using your IDE's tools.
+```
+$ git clone https://github.com/perpetio/flutter_ble.git
+```
+3. Open project in VSCode or Android studio.
+4. Run on simulator or real device using your IDE's tools.
