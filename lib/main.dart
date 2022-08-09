@@ -34,7 +34,8 @@ class _MainScreenState extends State<MainScreen> {
   final List<BluetoothDevice> _devicesList = [];
   List<BluetoothService>? bluetoothServices;
   List<ControlButton> controlButtons = [];
-  String? readableValue;
+  String? wifiNameValue;
+  String? wifiPasswordValue;
 
   @override
   void initState() {
@@ -70,7 +71,18 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: AppBar(title: const Text('Flutter BLE')), body: bluetoothServices == null ? _buildListViewOfDevices() : _buildControlButtons());
+    return Scaffold(
+        appBar: AppBar(title: const Text('Flutter BLE')),
+        body: bluetoothServices == null
+            ? Column(
+                children: [
+                  const SizedBox(height: 20),
+                  const Text('Available devices', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  Expanded(child: _buildListViewOfDevices()),
+                ],
+              )
+            : _buildControlButtons());
   }
 
   ListView _buildListViewOfDevices() {
@@ -79,33 +91,39 @@ class _MainScreenState extends State<MainScreen> {
       containers.add(
         SizedBox(
           height: 60,
-          child: Row(
-            children: <Widget>[
-              Expanded(child: Column(children: <Widget>[Text(device.name), Text(device.id.toString())])),
-              ElevatedButton(
-                child: const Text('Connect', style: TextStyle(color: Colors.white)),
-                onPressed: () async {
-                  if (device.name.contains('GoPro')) {
-                    try {
-                      await device.connect();
-                      controlButtons.addAll([
-                        ControlButton(buttonName: 'Record On', onTap: () => writeValue([0x03, 0x01, 0x01, 0x01])),
-                        ControlButton(buttonName: 'Record Off', onTap: () => writeValue([0x03, 0x01, 0x01, 0x00])),
-                        ControlButton(buttonName: 'Camera sleep', onTap: () => writeValue([0x01, 0x05])),
-                        ControlButton(buttonName: 'Show camera WiFi AP SSID', onTap: () => readValue('0002')),
-                        ControlButton(buttonName: 'Show camera WiFi AP Password	', onTap: () => readValue('0003')),
-                      ]);
-                      List<BluetoothService> services = await device.discoverServices();
-                      setState(() {
-                        bluetoothServices = services;
-                      });
-                    } catch (e) {
-                      await device.disconnect();
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[Text(device.name), Text(device.id.toString())])),
+                const Spacer(),
+                ElevatedButton(
+                  child: const Text('Connect', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  onPressed: () async {
+                    if (device.name.contains('GoPro')) {
+                      try {
+                        await device.connect();
+                        controlButtons.addAll([
+                          ControlButton(buttonName: 'Record On', onTap: () => writeValue([0x03, 0x01, 0x01, 0x01]), section: 1),
+                          ControlButton(buttonName: 'Record Off', onTap: () => writeValue([0x03, 0x01, 0x01, 0x00]), section: 1),
+                          ControlButton(buttonName: 'Turn off camera', onTap: () => writeValue([0x01, 0x05]), section: 2),
+                          ControlButton(buttonName: 'Fetch Camera WiFi name', onTap: () => readValue('0002'), section: 3),
+                          ControlButton(buttonName: 'Fetch Camera Password	', onTap: () => readValue('0003'), section: 3),
+                        ]);
+                        List<BluetoothService> services = await device.discoverServices();
+                        setState(() {
+                          bluetoothServices = services;
+                        });
+                      } catch (e) {
+                        await device.disconnect();
+                      }
                     }
-                  }
-                },
-              ),
-            ],
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -115,16 +133,48 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildControlButtons() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          children: controlButtons
-              .map((e) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: ElevatedButton(onPressed: e.onTap, child: Text(e.buttonName)),
-                  ))
-              .toList(),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+          child: Text('Camera control: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ),
-        Center(child: Text(readableValue ?? '')),
+        Wrap(
+            children: controlButtons
+                .where((element) => element.section == 1)
+                .map((e) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), child: ElevatedButton(onPressed: e.onTap, child: Text(e.buttonName))))
+                .toList()),
+        const Divider(),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+          child: Text('Camera power control: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ),
+        Wrap(
+            children: controlButtons
+                .where((element) => element.section == 2)
+                .map((e) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), child: ElevatedButton(onPressed: e.onTap, child: Text(e.buttonName))))
+                .toList()),
+        const Divider(),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+          child: Text('Camera WiFi information: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ),
+        Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: controlButtons
+                .where((element) => element.section == 3)
+                .map((e) => Row(
+                      children: [
+                        Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            child: ElevatedButton(onPressed: e.onTap, child: Text(e.buttonName))),
+                        Text((e.buttonName == 'Fetch Camera WiFi name' ? wifiNameValue : wifiPasswordValue) ?? '', style: const TextStyle(fontSize: 16)),
+                      ],
+                    ))
+                .toList()),
       ],
     );
   }
@@ -143,7 +193,12 @@ class _MainScreenState extends State<MainScreen> {
         bluetoothService?.characteristics.firstWhere((element) => element.uuid.toString() == 'b5f9$characteristicUUID-aa8d-11e3-9046-0002a5d5c51b');
     List<int>? utf8Response = await bluetoothCharacteristic?.read();
     setState(() {
-      readableValue = utf8.decode(utf8Response ?? []);
+      String decodeValue = utf8.decode(utf8Response ?? []);
+      if (characteristicUUID == '0002') {
+        wifiNameValue = decodeValue;
+      } else {
+        wifiPasswordValue = decodeValue;
+      }
     });
   }
 }
