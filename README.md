@@ -4,7 +4,8 @@ This app is a demo how to connect flutter app with GoPro camera.
 
 ## Video preview
 
-https://user-images.githubusercontent.com/88086968/183375113-5ab6bcef-4ec8-4a1a-a805-aeac335958bc.mov
+https://user-images.githubusercontent.com/88086968/183652772-c3411061-b454-4ec0-af66-3caa6b67779c.MOV
+
 
 ## We use *flutter_blue_plus* library for using bluetooth features. 
 
