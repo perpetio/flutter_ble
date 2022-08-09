@@ -1,4 +1,4 @@
-# flutter_ble
+# Flutter GoPro BLE demo app
 
 This app is demo how to connect flutter app with GoPro camera. 
 
