@@ -2,6 +2,11 @@
 
 This app is a demo how to connect flutter app with GoPro camera. 
 
+## See our tutorial post:
+
+[How to Build a Bluetooth-Enabled GoPro Remote Control App With Flutter](https://perpet.io/blog/how-to-build-a-bluetooth-enabled-gopro-remote-control-app-with-flutter/)
+
+
 ## Video preview
 
 https://user-images.githubusercontent.com/88086968/183653237-cba4caed-e48f-4e16-bf63-71f56c9ad2fd.MOV
